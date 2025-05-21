@@ -26,19 +26,19 @@ const APISettings: React.FC<APISettingsProps> = ({
   const handleConnect = () => {
     if (!apiKey || !apiSecret) {
       toast({
-        title: "Error",
-        description: "API Key and Secret Key are required",
+        title: "Erro",
+        description: "API Key e Secret Key são obrigatórios",
         variant: "destructive"
       });
       return;
     }
     
-    // Connect to Binance API
+    // Conectar à API da Binance
     onConnect(apiKey, apiSecret);
     
     toast({
-      title: "Success",
-      description: "API credentials saved",
+      title: "Sucesso",
+      description: "Credenciais da API salvas",
       variant: "default"
     });
     
@@ -48,10 +48,10 @@ const APISettings: React.FC<APISettingsProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogTitle>Binance API Settings</DialogTitle>
+        <DialogTitle>Configurações da API da Binance</DialogTitle>
         <DialogDescription>
-          Enter your Binance API credentials to connect to your account.
-          {isConnected && " Your API is currently connected."}
+          Digite suas credenciais da API da Binance para se conectar à sua conta.
+          {isConnected && " Sua API está conectada no momento."}
         </DialogDescription>
         
         <div className="space-y-4 py-4">
@@ -60,7 +60,7 @@ const APISettings: React.FC<APISettingsProps> = ({
             <Input 
               id="apiKey" 
               type="password" 
-              placeholder="Enter your API Key"
+              placeholder="Digite sua API Key"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
             />
@@ -71,27 +71,27 @@ const APISettings: React.FC<APISettingsProps> = ({
             <Input 
               id="apiSecret" 
               type="password"
-              placeholder="Enter your API Secret"
+              placeholder="Digite sua API Secret"
               value={apiSecret}
               onChange={(e) => setApiSecret(e.target.value)}
             />
           </div>
           
           <div className="text-sm text-muted-foreground">
-            <p>Your API key should have the following permissions:</p>
+            <p>Sua API key deve ter as seguintes permissões:</p>
             <ul className="list-disc ml-5 mt-1">
-              <li>Read Information</li>
-              <li>Spot & Margin Trading</li>
+              <li>Leitura de Informações</li>
+              <li>Trading Spot & Margin</li>
             </ul>
           </div>
         </div>
         
         <div className="flex justify-end gap-3">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Cancelar</Button>
           </DialogClose>
           <Button onClick={handleConnect}>
-            {isConnected ? "Update" : "Connect"}
+            {isConnected ? "Atualizar" : "Conectar"}
           </Button>
         </div>
       </DialogContent>

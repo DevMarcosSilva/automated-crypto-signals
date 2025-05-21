@@ -34,13 +34,13 @@ const LogConsole: React.FC<LogConsoleProps> = ({ logs }) => {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Bot Logs</CardTitle>
+        <CardTitle className="text-lg">Logs do Bot</CardTitle>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[200px] rounded-md border bg-secondary/30 p-2">
           <div className="font-mono text-sm">
             {logs.length === 0 ? (
-              <p className="text-muted-foreground p-2">No logs yet</p>
+              <p className="text-muted-foreground p-2">Nenhum log ainda</p>
             ) : (
               logs.map((log, index) => (
                 <div key={index} className={`mb-1 ${getLogColor(log.type)}`}>

@@ -28,26 +28,26 @@ const TradeHistory: React.FC<TradeHistoryProps> = ({ trades }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Trade History</CardTitle>
+        <CardTitle className="text-lg">Histórico de Trades</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="border rounded-md">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Hora</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead className="text-right">Quantidade</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">P/L</TableHead>
+                <TableHead className="text-right">L/P</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {trades.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
-                    No trades yet
+                    Nenhum trade ainda
                   </TableCell>
                 </TableRow>
               ) : (
@@ -55,7 +55,7 @@ const TradeHistory: React.FC<TradeHistoryProps> = ({ trades }) => {
                   <TableRow key={trade.id}>
                     <TableCell className="font-mono">{trade.time}</TableCell>
                     <TableCell className={trade.type === 'BUY' ? 'text-accent' : 'text-destructive'}>
-                      {trade.type}
+                      {trade.type === 'BUY' ? 'COMPRA' : 'VENDA'}
                     </TableCell>
                     <TableCell>${trade.price.toFixed(2)}</TableCell>
                     <TableCell className="text-right">{trade.amount.toFixed(4)}</TableCell>

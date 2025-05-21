@@ -22,10 +22,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <h1 className="text-2xl font-bold">TraderBot</h1>
         {isRunning ? (
           <Badge variant="default" className="bg-accent hover:bg-accent">
-            <span className="blinking mr-1">●</span> Running
+            <span className="blinking mr-1">●</span> Executando
           </Badge>
         ) : (
-          <Badge variant="secondary">Stopped</Badge>
+          <Badge variant="secondary">Parado</Badge>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Bot Settings</p>
+              <p>Configurações do Bot</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -46,7 +46,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           variant={isRunning ? "destructive" : "default"}
           onClick={toggleBot}
         >
-          {isRunning ? "Stop Bot" : "Start Bot"}
+          {isRunning ? "Parar Bot" : "Iniciar Bot"}
         </Button>
       </div>
     </div>

@@ -20,7 +20,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Today's Profit</p>
+            <p className="text-sm text-muted-foreground">Lucro de Hoje</p>
             <p className={`text-lg font-semibold ${profitToday >= 0 ? 'profit' : 'loss'}`}>
               {profitToday >= 0 ? '+' : ''}{profitToday.toFixed(2)} USDT
             </p>
@@ -31,7 +31,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Total Profit</p>
+            <p className="text-sm text-muted-foreground">Lucro Total</p>
             <p className={`text-lg font-semibold ${totalProfit >= 0 ? 'profit' : 'loss'}`}>
               {totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} USDT
             </p>
@@ -42,7 +42,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Win Rate</p>
+            <p className="text-sm text-muted-foreground">Taxa de Acerto</p>
             <p className="text-lg font-semibold">{winRate.toFixed(1)}%</p>
           </div>
         </CardContent>
@@ -51,7 +51,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
       <Card>
         <CardContent className="p-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Total Trades</p>
+            <p className="text-sm text-muted-foreground">Total de Trades</p>
             <p className="text-lg font-semibold">{tradesCount}</p>
           </div>
         </CardContent>
