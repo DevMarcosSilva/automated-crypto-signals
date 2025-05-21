@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import CoinSelectDropdown from './CoinSelectDropdown';
 
 interface BotControlsProps {
   settings: {
@@ -41,20 +42,10 @@ const BotControls: React.FC<BotControlsProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="symbol">Trading Pair</Label>
-              <Select 
-                value={settings.symbol} 
+              <CoinSelectDropdown 
+                value={settings.symbol}
                 onValueChange={(value) => updateSettings('symbol', value)}
-              >
-                <SelectTrigger id="symbol">
-                  <SelectValue placeholder="Select Symbol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SOLUSDT">SOL/USDT</SelectItem>
-                  <SelectItem value="BTCUSDT">BTC/USDT</SelectItem>
-                  <SelectItem value="ETHUSDT">ETH/USDT</SelectItem>
-                  <SelectItem value="BNBUSDT">BNB/USDT</SelectItem>
-                </SelectContent>
-              </Select>
+              />
             </div>
             
             <div className="space-y-2">

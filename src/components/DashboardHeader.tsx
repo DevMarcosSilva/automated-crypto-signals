@@ -19,7 +19,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">SOL Trader Bot</h1>
+        <h1 className="text-2xl font-bold">TraderBot</h1>
         {isRunning ? (
           <Badge variant="default" className="bg-accent hover:bg-accent">
             <span className="blinking mr-1">●</span> Running

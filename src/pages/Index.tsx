@@ -11,6 +11,13 @@ import DashboardStats from '@/components/DashboardStats';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 
+// Define the LogEntry type to match LogConsole props
+interface LogEntry {
+  timestamp: string;
+  message: string;
+  type: 'info' | 'success' | 'error' | 'warning';
+}
+
 const Index = () => {
   const { toast } = useToast();
   const [isRunning, setIsRunning] = useState(false);
@@ -59,12 +66,12 @@ const Index = () => {
     tradesCount: 0,
   });
 
-  // Demo logs
-  const [logs, setLogs] = useState([
+  // Fix: Use the correct type for logs
+  const [logs, setLogs] = useState<LogEntry[]>([
     {
       timestamp: new Date().toLocaleTimeString(),
       message: 'Bot initialized',
-      type: 'info' as const,
+      type: 'info',
     }
   ]);
 
