@@ -208,7 +208,7 @@ export function useTradingBot() {
   // Adicionar entrada de log
   const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
     setLogs(prev => [
-      ...prev, 
+      ...prev.slice(-49), // Manter apenas os últimos 50 logs
       {
         timestamp: new Date().toLocaleTimeString(),
         message,
@@ -332,10 +332,13 @@ export function useTradingBot() {
 
   // Simular dados iniciais
   const simulateInitialData = () => {
-    // Criar dados de preço aleatórios
-    const basePrices = Array.from({ length: 100 }, (_, i) => 
-      Math.sin(i * 0.1) * 10 + Math.random() * 5 + 100
-    );
+    // Criar dados de preço mais realistas
+    const basePrice = 100 + Math.random() * 50; // Preço base entre 100-150
+    const basePrices = Array.from({ length: 100 }, (_, i) => {
+      const trend = Math.sin(i * 0.05) * 5; // Tendência suave
+      const noise = (Math.random() - 0.5) * 2; // Ruído aleatório
+      return basePrice + trend + noise + (i * 0.1); // Leve tendência de alta
+    });
     
     // Timestamps
     const now = Date.now();
@@ -343,21 +346,31 @@ export function useTradingBot() {
       new Date(now - (99 - i) * 15 * 60 * 1000).toLocaleTimeString()
     );
     
-    // Cálculo simples para médias móveis
+    // Cálculo das médias móveis
     const maShort = calculateMA(basePrices, botSettings.maShort);
     const maLong = calculateMA(basePrices, botSettings.maLong);
     
-    // Gerar alguns sinais
-    const buySignals = [
-      { time: times[30], price: basePrices[30] },
-      { time: times[60], price: basePrices[60] },
-      { time: times[85], price: basePrices[85] }
-    ];
+    // Gerar sinais baseados no cruzamento das médias móveis
+    const buySignals: { time: string, price: number }[] = [];
+    const sellSignals: { time: string, price: number }[] = [];
     
-    const sellSignals = [
-      { time: times[45], price: basePrices[45] },
-      { time: times[75], price: basePrices[75] }
-    ];
+    for (let i = botSettings.maLong; i < basePrices.length; i++) {
+      const currentShort = maShort[i];
+      const currentLong = maLong[i];
+      const prevShort = maShort[i - 1];
+      const prevLong = maLong[i - 1];
+      
+      // Sinal de compra: MA curta cruza acima da MA longa
+      if (currentShort && currentLong && prevShort && prevLong) {
+        if (prevShort <= prevLong && currentShort > currentLong) {
+          buySignals.push({ time: times[i], price: basePrices[i] });
+        }
+        // Sinal de venda: MA curta cruza abaixo da MA longa
+        else if (prevShort >= prevLong && currentShort < currentLong) {
+          sellSignals.push({ time: times[i], price: basePrices[i] });
+        }
+      }
+    }
     
     // Configurar dados do gráfico
     setChartData({
@@ -369,28 +382,70 @@ export function useTradingBot() {
       sellSignals
     });
     
-    // Adicionar alguns trades iniciais
-    const initialTrades: Trade[] = [
-      {
-        id: 'buy-1',
-        time: times[30],
-        type: 'BUY',
-        price: basePrices[30],
-        amount: botSettings.investment / basePrices[30],
-        total: botSettings.investment,
-      },
-      {
-        id: 'sell-1',
-        time: times[45],
-        type: 'SELL',
-        price: basePrices[45],
-        amount: botSettings.investment / basePrices[30],
-        total: (botSettings.investment / basePrices[30]) * basePrices[45],
-        profit: ((basePrices[45] - basePrices[30]) / basePrices[30]) * 100
-      }
-    ];
+    // Simular alguns trades históricos baseados nos sinais
+    const historicalTrades: Trade[] = [];
+    let isInHistoricalPosition = false;
+    let entryPrice = 0;
+    let entryQuantity = 0;
     
-    setTrades(initialTrades);
+    [...buySignals, ...sellSignals]
+      .sort((a, b) => times.indexOf(a.time) - times.indexOf(b.time))
+      .forEach((signal, index) => {
+        const isBuySignal = buySignals.includes(signal);
+        
+        if (isBuySignal && !isInHistoricalPosition) {
+          // Executar compra
+          entryPrice = signal.price;
+          entryQuantity = botSettings.investment / signal.price;
+          
+          historicalTrades.push({
+            id: `historical-buy-${index}`,
+            time: signal.time,
+            type: 'BUY',
+            price: signal.price,
+            amount: entryQuantity,
+            total: botSettings.investment,
+          });
+          
+          isInHistoricalPosition = true;
+        } else if (!isBuySignal && isInHistoricalPosition) {
+          // Executar venda
+          const profit = ((signal.price - entryPrice) / entryPrice) * 100;
+          
+          historicalTrades.push({
+            id: `historical-sell-${index}`,
+            time: signal.time,
+            type: 'SELL',
+            price: signal.price,
+            amount: entryQuantity,
+            total: signal.price * entryQuantity,
+            profit: profit
+          });
+          
+          isInHistoricalPosition = false;
+        }
+      });
+    
+    setTrades(historicalTrades.reverse()); // Mostrar os mais recentes primeiro
+    
+    // Atualizar estatísticas baseadas nos trades históricos
+    const profits = historicalTrades
+      .filter(trade => trade.type === 'SELL' && trade.profit !== undefined)
+      .map(trade => trade.profit!);
+    
+    if (profits.length > 0) {
+      const totalProfit = profits.reduce((sum, profit) => sum + profit, 0);
+      const winningTrades = profits.filter(profit => profit > 0).length;
+      
+      setStats({
+        profitToday: totalProfit * 0.3, // 30% do lucro total como "hoje"
+        totalProfit: totalProfit,
+        winRate: (winningTrades / profits.length) * 100,
+        tradesCount: profits.length
+      });
+    }
+    
+    addLog(`Dados históricos carregados: ${historicalTrades.length} trades simulados`, 'info');
     
     // Iniciar simulação de atualizações de dados em tempo real
     startDataSimulation();
@@ -398,26 +453,28 @@ export function useTradingBot() {
 
   // Auxiliar para calcular média móvel
   const calculateMA = (prices: number[], period: number) => {
-    return prices.map((_, i, arr) => {
+    return prices.map((_, i) => {
       if (i < period - 1) return null;
-      const slice = arr.slice(i - period + 1, i + 1);
+      const slice = prices.slice(i - period + 1, i + 1);
       return slice.reduce((a, b) => a + b, 0) / period;
     });
   };
 
   // Simular atualizações de dados em tempo real
   const startDataSimulation = () => {
-    const interval = setInterval(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    const runSimulation = () => {
       if (!isRunning) {
-        clearInterval(interval);
+        if (intervalId) clearInterval(intervalId);
         return;
       }
       
       // Atualizar gráfico com novo preço
       setChartData(prev => {
-        const lastPrice = prev.prices[prev.prices.length - 1];
-        const change = (Math.random() - 0.5) * 2; // Mudança aleatória entre -1 e 1
-        const newPrice = lastPrice + change;
+        const lastPrice = prev.prices[prev.prices.length - 1] || 100;
+        const change = (Math.random() - 0.5) * 4; // Mudança aleatória entre -2 e 2
+        const newPrice = Math.max(lastPrice + change, 10); // Evitar preços negativos
         
         // Novo ponto de dados
         const now = new Date().toLocaleTimeString();
@@ -428,21 +485,28 @@ export function useTradingBot() {
         const newMaShort = calculateMA(newPrices, botSettings.maShort);
         const newMaLong = calculateMA(newPrices, botSettings.maLong);
         
-        // Verificar novos sinais (lógica simplificada)
+        // Verificar sinais de cruzamento das médias móveis
         let newBuySignals = [...prev.buySignals];
         let newSellSignals = [...prev.sellSignals];
         
-        const shouldGenerateSignal = Math.random() > 0.85; // 15% de chance de sinal
+        const currentShort = newMaShort[newMaShort.length - 1];
+        const currentLong = newMaLong[newMaLong.length - 1];
+        const prevShort = newMaShort[newMaShort.length - 2];
+        const prevLong = newMaLong[newMaLong.length - 2];
         
-        if (shouldGenerateSignal) {
-          const isBuySignal = Math.random() > 0.5;
-          
-          if (isBuySignal && !inPosition) {
+        // Verificar cruzamentos das médias móveis
+        if (currentShort && currentLong && prevShort && prevLong) {
+          // Sinal de compra: MA curta cruza acima da MA longa
+          if (prevShort <= prevLong && currentShort > currentLong && !inPosition) {
             newBuySignals = [...newBuySignals, { time: now, price: newPrice }];
-            handleBuySignal(newPrice);
-          } else if (!isBuySignal && inPosition) {
+            setTimeout(() => handleBuySignal(newPrice), 100);
+            addLog(`SINAL DETECTADO: Cruzamento de alta - ${botSettings.maType}${botSettings.maShort} acima de ${botSettings.maType}${botSettings.maLong}`, 'warning');
+          }
+          // Sinal de venda: MA curta cruza abaixo da MA longa
+          else if (prevShort >= prevLong && currentShort < currentLong && inPosition) {
             newSellSignals = [...newSellSignals, { time: now, price: newPrice }];
-            closePosition();
+            setTimeout(() => closePosition(), 100);
+            addLog(`SINAL DETECTADO: Cruzamento de baixa - ${botSettings.maType}${botSettings.maShort} abaixo de ${botSettings.maType}${botSettings.maLong}`, 'warning');
           }
         }
         
@@ -460,10 +524,15 @@ export function useTradingBot() {
           sellSignals: newSellSignals
         };
       });
-      
-    }, 5000); // Atualizar a cada 5 segundos
+    };
 
-    return () => clearInterval(interval);
+    // Executar imediatamente e depois a cada intervalo
+    runSimulation();
+    intervalId = setInterval(runSimulation, botSettings.checkInterval * 1000);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   };
 
   // Lidar com sinal de compra
@@ -494,18 +563,12 @@ export function useTradingBot() {
       pnlPercentage: 0
     });
     
-    addLog(`SINAL DE COMPRA: Comprado ${quantity.toFixed(4)} ${botSettings.symbol.replace('USDT', '')} a $${price.toFixed(2)}`, 'success');
+    addLog(`COMPRA EXECUTADA: ${quantity.toFixed(4)} ${botSettings.symbol.replace('USDT', '')} a $${price.toFixed(2)}`, 'success');
     
     toast({
-      title: "Sinal de Compra",
+      title: "Compra Executada",
       description: `Comprado ${quantity.toFixed(4)} ${botSettings.symbol.replace('USDT', '')} a $${price.toFixed(2)}`,
     });
-    
-    // Atualizar estatísticas
-    setStats(prev => ({
-      ...prev,
-      tradesCount: prev.tradesCount + 1
-    }));
   };
 
   // Atualizar dados da posição com novo preço
@@ -522,6 +585,13 @@ export function useTradingBot() {
       };
     });
   };
+
+  // Cleanup ao parar o bot
+  useEffect(() => {
+    return () => {
+      // Cleanup se necessário
+    };
+  }, [isRunning]);
 
   return {
     isRunning,
