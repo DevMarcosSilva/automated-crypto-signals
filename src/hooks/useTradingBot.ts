@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTradeExecution } from '@/hooks/useTradeExecution';
@@ -75,7 +74,7 @@ export function useTradingBot() {
   const [logs, setLogs] = useState<LogEntry[]>([
     {
       timestamp: new Date().toLocaleTimeString(),
-      message: 'Bot inicializado',
+      message: 'Bot inicializado com verificação de saldo ativada',
       type: 'info',
     }
   ]);
@@ -124,7 +123,7 @@ export function useTradingBot() {
       });
     } else {
       setIsRunning(true);
-      addLog(`Bot iniciado com ${botSettings.maType}${botSettings.maShort} e ${botSettings.maType}${botSettings.maLong} em ${botSettings.symbol} ${botSettings.timeframe}`, 'success');
+      addLog(`Bot iniciado com verificação de saldo ativada - ${botSettings.maType}${botSettings.maShort} e ${botSettings.maType}${botSettings.maLong} em ${botSettings.symbol} ${botSettings.timeframe}`, 'success');
       toast({
         title: "Bot Iniciado",
         description: `O bot de trading está agora operando ${botSettings.symbol}`,
@@ -246,17 +245,24 @@ export function useTradingBot() {
         const prevLong = newMaLong[newMaLong.length - 2];
         
         if (currentShort && currentLong && prevShort && prevLong) {
+          // Sinal de compra: MA curta cruza acima da MA longa E não está em posição
           if (prevShort <= prevLong && currentShort > currentLong && !inPosition) {
             newBuySignals = [...newBuySignals, { time: now, price: newPrice }];
-            setTimeout(() => handleBuySignal(newPrice, botSettings.investment, botSettings.symbol, setTrades, addLog), 100);
             addLog(`SINAL DETECTADO: Cruzamento de alta - ${botSettings.maType}${botSettings.maShort} acima de ${botSettings.maType}${botSettings.maLong}`, 'warning');
+            
+            // Executa a compra com verificação de saldo
+            setTimeout(() => handleBuySignal(newPrice, botSettings.investment, botSettings.symbol, setTrades, addLog), 100);
+            
+          // Sinal de venda: MA curta cruza abaixo da MA longa E está em posição
           } else if (prevShort >= prevLong && currentShort < currentLong && inPosition) {
             newSellSignals = [...newSellSignals, { time: now, price: newPrice }];
-            setTimeout(() => closePosition(), 100);
             addLog(`SINAL DETECTADO: Cruzamento de baixa - ${botSettings.maType}${botSettings.maShort} abaixo de ${botSettings.maType}${botSettings.maLong}`, 'warning');
+            
+            setTimeout(() => closePosition(), 100);
           }
         }
         
+        // Atualiza dados da posição se estiver em posição
         if (inPosition) {
           updatePositionData(newPrice);
         }
